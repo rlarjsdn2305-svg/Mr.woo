@@ -609,6 +609,13 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--g1);colo
         </div>
         <div id="t-unfb-list"></div>
       </div>
+      <!-- PT 소진 임박 알림 -->
+      <div class="action-card">
+        <div class="action-card-title">
+          PT 소진 임박<span class="unread-dot" id="t-ptlow-cnt">0</span>
+        </div>
+        <div id="t-ptlow-list"></div>
+      </div>
       <!-- 최신 공지 -->
       <div class="action-card">
         <div class="action-card-title">공지</div>
@@ -1577,6 +1584,26 @@ function renderT(){
     var cnt=el('t-unfb-cnt'); if(cnt)cnt.textContent=unfb.length;
     if(!unfb.length){setH('t-unfb-list','<p style="color:#aaa;font-size:11px;text-align:center;padding:8px;">미작성 피드백 없음</p>');}
     else{var uh='';unfb.slice(0,5).forEach(function(x){uh+='<div class="t-action-item" onclick="selectMember('+x.m.id+');tGo(\'members\');activeTab=\'journal\';renderMD()"><div class="t-action-dot" style="background:#ff6b6b;"></div><div class="t-action-name">'+x.m.name+'</div><span class="t-action-tag" style="background:#fff0f0;color:#ff6b6b;">'+x.cnt+'건 미작성</span></div>';});setH('t-unfb-list',uh);}
+  }
+  // PT 소진 임박 회원 — 활성 회원 중 잔여 PT 3회 이하 (재등록 영업 타이밍)
+  if(el('t-ptlow-list')){
+    var ptlow=[];
+    members.forEach(function(m){
+      if((m.status||'active')!=='active')return;
+      if(!m.ptTotal)return;
+      var remain=(m.ptTotal||0)-(m.ptUsed||0);
+      if(remain<=3)ptlow.push({m:m,remain:remain});
+    });
+    ptlow.sort(function(a,b){return a.remain-b.remain;});
+    var pcnt=el('t-ptlow-cnt');if(pcnt)pcnt.textContent=ptlow.length;
+    if(!ptlow.length){setH('t-ptlow-list','<p style="color:#aaa;font-size:11px;text-align:center;padding:8px;">소진 임박 회원 없음</p>');}
+    else{var ph='';ptlow.slice(0,5).forEach(function(x){
+      var done=x.remain<=0;
+      var tag=done?'소진 완료':x.remain+'회 남음';
+      var col=done?'#ef4444':(x.remain<=1?'#f97316':'#fb923c');
+      var bg=done?'#fdecec':'#fff4ec';
+      ph+='<div class="t-action-item" onclick="selectMember('+x.m.id+');tGo(\'members\');renderMD()"><div class="t-action-dot" style="background:'+col+';"></div><div class="t-action-name">'+x.m.name+'</div><span class="t-action-tag" style="background:'+bg+';color:'+col+';">'+tag+'</span></div>';
+    });setH('t-ptlow-list',ph);}
   }
   if(el('t-np'))setH('t-np',notices.slice(0,2).map(function(n){return'<div style="padding:7px;background:var(--g0);border-radius:7px;margin-bottom:5px;font-size:11px;font-weight:700;">[공지] '+n.text+'</div>';}).join('')||'<p style="color:#aaa;font-size:11px;">없음</p>');
   if(el('notice-list'))setH('notice-list',notices.map(function(n){return'<div class="card"><b style="font-size:10px;color:var(--g6);">'+n.date+'</b><p style="margin-top:3px;font-size:12px;">'+n.text+'</p></div>';}).join('')||'<div class="card" style="color:#aaa;font-size:12px;">공지 없음</div>');
