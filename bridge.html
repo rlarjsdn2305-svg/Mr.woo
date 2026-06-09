@@ -334,6 +334,8 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--g1);colo
 .streak-num{font-size:32px;font-weight:900;color:var(--a);line-height:1;}
 .streak-label{font-size:10px;color:rgba(255,255,255,.4);font-weight:700;margin-top:2px;}
 .streak-sub{font-size:11px;color:rgba(255,255,255,.6);font-weight:700;}
+.streak-best{font-size:10px;font-weight:800;color:rgba(255,255,255,.45);margin-top:4px;}
+.streak-best.record{color:#fbbf24;}
 .tip-card{background:white;border-radius:12px;border-left:4px solid var(--a);padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;}
 .tip-ico{font-size:18px;flex-shrink:0;margin-top:1px;}
 .tip-label{font-size:9px;font-weight:900;color:var(--a);letter-spacing:.8px;margin-bottom:3px;}
@@ -940,6 +942,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--g1);colo
             <div class="streak-sub">일 연속</div>
           </div>
           <div class="streak-label" id="m-streak-label">오늘 첫 기록을 남겨보세요</div>
+          <div class="streak-best" id="m-streak-best"></div>
         </div>
       </div>
       <!-- 수면 & 기분 -->
@@ -2331,6 +2334,21 @@ function renderMember(){
     else if(streak<7)slbl.textContent=streak+'일째 꾸준히 하고 있어요!';
     else slbl.textContent=streak+'일 연속 — 대단해요!';
   }
+  // 역대 최고 연속 기록 배지
+  var best=calcBestStreak();
+  var sbest=el('m-streak-best');
+  if(sbest){
+    if(streak>0&&streak>=best){
+      sbest.textContent='🔥 최고 기록 경신 중! ('+best+'일)';
+      sbest.className='streak-best record';
+    } else if(best>0){
+      sbest.textContent='최고 '+best+'일 · 경신까지 '+(best-streak+1)+'일';
+      sbest.className='streak-best';
+    } else {
+      sbest.textContent='';
+      sbest.className='streak-best';
+    }
+  }
   renderHomeWeekStrip();
   renderCircStreak();
   renderSleepMood();
@@ -2688,6 +2706,20 @@ function calcStreak(){
     d.setDate(d.getDate()-1);
   }
   return streak;
+}
+/* ── 역대 최고 연속 기록 계산 ── */
+function calcBestStreak(){
+  var diets=getMemberDiets();
+  if(!diets.length)return 0;
+  var dates={};
+  diets.forEach(function(d){if(d.date)dates[d.date]=true;});
+  var best=0,run=0; var d=new Date();
+  for(var i=0;i<365;i++){
+    var ds=d.toLocaleDateString('ko-KR');
+    if(dates[ds]){run++;if(run>best)best=run;}else{run=0;}
+    d.setDate(d.getDate()-1);
+  }
+  return best;
 }
 
 /* ── 오늘의 건강 TIP ── */
